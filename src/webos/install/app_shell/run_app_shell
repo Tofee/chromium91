@@ -112,6 +112,8 @@ if test -n ${DISPLAY_ID}; then
 fi
 
 CHROME_FLAGS=" \
+  --allow-file-access\
+  --allow-file-access-from-files\
   --allow-scripts-to-close-windows\
   --always-authorize-plugins\
   --autoplay-policy=no-user-gesture-required\
@@ -122,6 +124,7 @@ CHROME_FLAGS=" \
   --disable-infobars\
   --disable-new-video-renderer\
   --disable-translate\
+  --disable-web-security\
   --enable-file-cookies\
   --enable-neva-ime\
   --enable-neva-media-service\
