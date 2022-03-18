@@ -83,7 +83,7 @@ def _MinifyJS(input_js):
 
   with tempfile.NamedTemporaryFile() as _:
     args = [
-        'python',
+        'python3',
         rjsmin_path
     ]
     p = subprocess.Popen(args,
@@ -203,12 +203,12 @@ def _MinifyCSS(css_text):
       os.path.join(py_vulcanize_path, 'third_party', 'rcssmin', 'rcssmin.py'))
 
   with tempfile.NamedTemporaryFile() as _:
-    rcssmin_args = ['python', rcssmin_path]
+    rcssmin_args = ['python3', rcssmin_path]
     p = subprocess.Popen(rcssmin_args,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
-    res = p.communicate(input=css_text)
+    res = p.communicate(input=css_text.encode('utf-8'))
     errorcode = p.wait()
     if errorcode != 0:
       sys.stderr.write('rCSSmin exited with error code %d' % errorcode)

@@ -16,10 +16,21 @@ from argparse import ArgumentParser
 from collections import namedtuple
 from collections import OrderedDict
 from functools import partial
+import ast
+import os
+import codecs
 import json
 import re
 import sys
 import textwrap
+
+sys.path.insert(
+    0,
+    os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, os.pardir,
+                 'third_party', 'six', 'src'))
+
+import six
+
 from xml.sax.saxutils import escape as xml_escape
 
 if sys.version_info.major == 2:
@@ -374,7 +385,7 @@ def main():
 
   def GenerateFile(path, writer, sorted=False, xml=False):
     if path:
-      with open(path, 'w') as f:
+      with codecs.open(path, 'w', encoding='utf-8') as f:
         _OutputGeneratedWarningHeader(f, template_file_name, xml)
         writer(sorted and sorted_policy_details or policy_details,
                sorted and sorted_policy_atomic_groups or policy_atomic_groups,
@@ -451,7 +462,7 @@ COMMENT_WRAPPER.replace_whitespace = False
 
 # Writes a comment, each line prefixed by // and wrapped to 80 spaces.
 def _OutputComment(f, comment):
-  for line in comment.splitlines():
+  for line in six.ensure_text(comment).splitlines():
     if len(line) == 0:
       f.write('//')
     else:
@@ -460,9 +471,9 @@ def _OutputComment(f, comment):
 
 
 def _LoadJSONFile(json_file):
-  with open(json_file, 'r') as f:
+  with codecs.open(json_file, 'r', encoding='utf-8') as f:
     text = f.read()
-  return eval(text)
+  return ast.literal_eval(text)
 
 
 #------------------ policy constants header ------------------------#
@@ -862,7 +873,7 @@ class SchemaNodesGenerator:
             'Extra  IsSensitiveValue HasSensitiveChildren\n')
     for schema_node in self.schema_nodes:
       assert schema_node.extra >= MIN_INDEX and schema_node.extra <= MAX_INDEX
-      comment = ('\n' + ' ' * 69 + '// ').join(schema_node.comments)
+      comment = ('\n' + ' ' * 69 + '// ').join(sorted(schema_node.comments))
       f.write('  { base::Value::%-19s %4s %-16s %-5s },  // %s\n' %
               (schema_node.schema_type + ',', str(schema_node.extra) + ',',
                str(schema_node.is_sensitive_value).lower() + ',',
@@ -1526,9 +1537,9 @@ def _GetSupportedChromeOSPolicies(policies, type):
   return filter(partial(_IsSupportedChromeOSPolicy, type), policies)
 
 
-# Returns the set of all policy.policy_protobuf_type strings from |policies|.
+# Returns the list of all policy.policy_protobuf_type strings from |policies|.
 def _GetProtobufTypes(policies):
-  return set(['Integer', 'Boolean', 'String', 'StringList'])
+  return sorted(['Integer', 'Boolean', 'String', 'StringList'])
 
 
 # Writes the definition of an array that contains the pointers to the mutable

@@ -16,7 +16,7 @@ def main(*files):
             continue
 
         shutil.copy(src, dst)
-        os.chmod(os.path.join(dst, src) if os.path.isdir(dst) else dst, 0755)
+        os.chmod(os.path.join(dst, src) if os.path.isdir(dst) else dst, 0o755)
 
 
 if  __name__ == "__main__":

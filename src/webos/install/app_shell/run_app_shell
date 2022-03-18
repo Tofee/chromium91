@@ -21,6 +21,8 @@ export MAX_GPU_MEM_LIMIT=60
 # setup 32Mb maximum for DiskCache
 export APPSHELL_DISKCACHE_MAXSIZE=33554432
 
+export XDG_RUNTIME_DIR=/tmp/luna-session
+
 while [[ "$1" != ""  &&  "$2" != "" ]]; do
     PARAM=$1
     VALUE=$2
@@ -53,8 +55,8 @@ if [ -z ${BROWSER_APP_ID} ]; then
     exit 1
 fi
 
-if test -d ${XDG_RUNTIME_DIR}; then
-  export XDG_RUNTIME_DIR="${TMPDIR}/xdg"
+if ! test -d ${XDG_RUNTIME_DIR}; then
+  export XDG_RUNTIME_DIR="${TMPDIR}/luna-session"
 fi
 
 DEPLOY_DIR=$(dirname $(readlink -f $0))

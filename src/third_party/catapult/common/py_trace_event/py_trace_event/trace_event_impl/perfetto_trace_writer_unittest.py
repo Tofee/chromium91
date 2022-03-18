@@ -4,7 +4,10 @@
 # found in the LICENSE file.
 
 import unittest
-import StringIO
+try:
+  from StringIO import StringIO
+except ImportError:
+  from io import StringIO
 
 from py_trace_event.trace_event_impl import perfetto_trace_writer
 
@@ -19,7 +22,7 @@ class PerfettoTraceWriterTest(unittest.TestCase):
     perfetto_trace_writer.reset_global_state()
 
   def testWriteThreadDescriptorEvent(self):
-    result = StringIO.StringIO()
+    result = StringIO()
     perfetto_trace_writer.write_thread_descriptor_event(
         output=result,
         pid=1,
@@ -33,7 +36,7 @@ class PerfettoTraceWriterTest(unittest.TestCase):
     self.assertEqual(expected_output, result.getvalue())
 
   def testWriteTwoEvents(self):
-    result = StringIO.StringIO()
+    result = StringIO()
     perfetto_trace_writer.write_thread_descriptor_event(
         output=result,
         pid=1,
@@ -59,7 +62,7 @@ class PerfettoTraceWriterTest(unittest.TestCase):
     self.assertEqual(expected_output, result.getvalue())
 
   def testWriteMetadata(self):
-    result = StringIO.StringIO()
+    result = StringIO()
     perfetto_trace_writer.write_metadata(
         output=result,
         benchmark_start_time_us=1556716807306000,
@@ -79,7 +82,7 @@ class PerfettoTraceWriterTest(unittest.TestCase):
     self.assertEqual(expected_output, result.getvalue())
 
   def testWriteArgs(self):
-    result = StringIO.StringIO()
+    result = StringIO()
     perfetto_trace_writer.write_thread_descriptor_event(
         output=result,
         pid=1,
@@ -105,7 +108,7 @@ class PerfettoTraceWriterTest(unittest.TestCase):
     self.assertEqual(expected_output, result.getvalue())
 
   def testWriteChromeMetadata(self):
-    result = StringIO.StringIO()
+    result = StringIO()
     perfetto_trace_writer.write_chrome_metadata(
         output=result,
         clock_domain='FOO',
@@ -116,7 +119,7 @@ class PerfettoTraceWriterTest(unittest.TestCase):
     self.assertEqual(expected_output, result.getvalue())
 
   def testWriteClockSnapshot(self):
-    result = StringIO.StringIO()
+    result = StringIO()
     perfetto_trace_writer.write_clock_snapshot(
         output=result,
         tid=1,
