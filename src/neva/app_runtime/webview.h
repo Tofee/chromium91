@@ -89,7 +89,7 @@ class WebView : public content::WebContentsDelegate,
 
   static void SetFileAccessBlocked(bool blocked);
 
-  WebView(int width, int height, WebViewProfile* profile = nullptr);
+  WebView(int width, int height, WebViewProfile* profile = nullptr, std::unique_ptr<content::WebContents> web_contents = 0);
   ~WebView() override;
 
   void SetDelegate(WebViewDelegate* delegate);
@@ -190,6 +190,13 @@ class WebView : public content::WebContentsDelegate,
   content::WebContents* OpenURLFromTab(
       content::WebContents* source,
       const content::OpenURLParams& params) override;
+  void AddNewContents(content::WebContents* source,
+                      std::unique_ptr<content::WebContents> new_contents,
+                      const GURL& target_url,
+                      WindowOpenDisposition disposition,
+                      const gfx::Rect& initial_rect,
+                      bool user_gesture,
+                      bool* was_blocked) override;
 
   void NavigationStateChanged(content::WebContents* source,
                               content::InvalidateTypes changed_flags) override;
@@ -295,6 +302,12 @@ class WebView : public content::WebContentsDelegate,
 #endif
   void SwitchFullscreenModeForTab(content::WebContents* web_contents,
                                   bool enter_fullscreen);
+                                  
+  content::WebContents *CreateWindowForContents(std::unique_ptr<content::WebContents> new_contents, 
+                                                const GURL& target_url,
+                                                WindowOpenDisposition disposition, 
+                                                const gfx::Rect& initial_pos, 
+                                                bool user_gesture);
 
   WebViewDelegate* webview_delegate_ = nullptr;
 

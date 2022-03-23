@@ -131,11 +131,16 @@ void WebView::SetFileAccessBlocked(bool blocked) {
   NOTIMPLEMENTED();
 }
 
-WebView::WebView(int width, int height, WebViewProfile* profile)
+WebView::WebView(int width, int height, WebViewProfile* profile, std::unique_ptr<content::WebContents> web_contents)
     : width_(width),
       height_(height),
-      profile_(profile ? profile : WebViewProfile::GetDefaultProfile()) {
-  CreateWebContents();
+      profile_(profile ? profile : WebViewProfile::GetDefaultProfile()),
+      web_contents_(std::move(web_contents)) {
+  if(!web_contents_) {
+    CreateWebContents();
+  }
+  injection_manager_ = std::make_unique<WebAppInjectionManager>();
+  
   web_contents_->SetDelegate(this);
   Observe(web_contents_.get());
 
@@ -201,7 +206,6 @@ void WebView::CreateWebContents() {
       profile_->GetBrowserContextAdapter()->GetBrowserContext();
   content::WebContents::CreateParams params(browser_context, nullptr);
   web_contents_ = content::WebContents::Create(params);
-  injection_manager_ = std::make_unique<WebAppInjectionManager>();
 }
 
 content::WebContents* WebView::GetWebContents() {
@@ -420,6 +424,18 @@ void WebView::LoadProgressChanged(double progress) {
     webview_delegate_->OnLoadProgressChanged(progress);
 }
 
+content::WebContents *WebView::CreateWindowForContents(std::unique_ptr<content::WebContents> new_contents, const GURL& target_url, WindowOpenDisposition disposition, const gfx::Rect& initial_pos, bool user_gesture)
+{
+  content::WebContents *contents = nullptr;
+  if (webview_delegate_) {
+    contents = webview_delegate_->CreateWindowForContents(std::move(new_contents), target_url.spec());
+  }
+
+//  WebView *newAdapter = new WebContentsAdapter(std::move(new_contents));
+//  m_viewClient->adoptNewWindow(newAdapter, static_cast<WebContentsAdapterClient::WindowOpenDisposition>(disposition), user_gesture, toQt(initial_pos), m_initialTargetUrl);
+  return contents;
+}
+
 // OpenURLFromTab() method is implemented for transition from old_url to new_url
 // where old_url.SchemeIs(url::kFileScheme) == false
 // and   new_url.SchemeIs(url::kFileScheme) == true
@@ -433,16 +449,27 @@ content::WebContents* WebView::OpenURLFromTab(
     return nullptr;
   }
 
+  content::WebContents *target = source;
+  content::SiteInstance *target_site_instance = params.source_site_instance.get();
+  content::Referrer referrer = params.referrer;
   if (params.disposition != WindowOpenDisposition::CURRENT_TAB) {
-    NOTIMPLEMENTED();
-    return nullptr;
+      target = CreateWindowForContents(0, params.url, params.disposition, gfx::Rect(), params.user_gesture);
   }
 
-  source->GetController().LoadURLWithParams(
-      content::NavigationController::LoadURLParams(params));
-  return source;
+  content::NavigationController::LoadURLParams load_url_params(params);
+  load_url_params.source_site_instance = target_site_instance;
+  load_url_params.referrer = referrer;
+
+  target->GetController().LoadURLWithParams(load_url_params);
+  return target;
 }
 
+void WebView::AddNewContents(content::WebContents* source, std::unique_ptr<content::WebContents> new_contents, const GURL& target_url, WindowOpenDisposition disposition, const gfx::Rect& initial_pos, bool user_gesture, bool* was_blocked)
+{
+    content::WebContents* newContent = CreateWindowForContents(std::move(new_contents), target_url, disposition, initial_pos, user_gesture);
+    if (was_blocked)
+        *was_blocked = !newContent;
+}
 void WebView::NavigationStateChanged(content::WebContents* source,
                                      content::InvalidateTypes changed_flags) {
   if (content::INVALIDATE_TYPE_TITLE & changed_flags) {

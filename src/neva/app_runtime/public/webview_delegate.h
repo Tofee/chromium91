@@ -21,6 +21,10 @@
 
 #include "neva/app_runtime/public/app_runtime_constants.h"
 
+namespace content {
+    class WebContents;
+}
+
 namespace neva_app_runtime {
 
 struct WebViewInfo;
@@ -65,6 +69,9 @@ class WebViewDelegate {
   virtual void DidDropAllPeerConnections(
       neva_app_runtime::DropPeerConnectionReason reason) {}
   virtual void DidResumeDOM() {}
+
+  // create a new view for this content
+  virtual content::WebContents *CreateWindowForContents(std::unique_ptr<content::WebContents> new_contents, const std::string& newUrl) = 0;
 
   // Pluggable delegate
   virtual void SendCookiesForHostname(const std::string& cookies) {}

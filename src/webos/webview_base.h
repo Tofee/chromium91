@@ -98,10 +98,20 @@ class WEBOS_EXPORT WebViewBase
 
   static void SetFileAccessBlocked(bool blocked);
 
+  WebViewBase(neva_app_runtime::WebView *webview,
+              bool alt_storage_path = false,
+              int width = 1920,
+              int height = 1080);
+
   WebViewBase(bool alt_storage_path = false,
               int width = 1920,
               int height = 1080);
+              
   ~WebViewBase() override;
+
+  content::WebContents *CreateWindowForContents(std::unique_ptr<content::WebContents> new_contents, const std::string& newUrl) override;
+  // CreateWindowForWebView should be implemented in WAM
+  virtual content::WebContents *CreateWindowForWebView(const std::string& newUrl, neva_app_runtime::WebView *webview) { return nullptr; };
 
   void Initialize(const std::string& app_id,
                   const std::string& app_path,
